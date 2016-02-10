@@ -61,6 +61,11 @@ Page {
             }
 
             MenuItem {
+                text: 'Add from OPML'
+                onClicked: pgst.loadPage('SubscribeFromOPML.qml');
+            }
+
+            MenuItem {
                 text: 'Discover new podcasts'
                 onClicked: pgst.loadPage('DirectorySelectionDialog.qml');
             }
