@@ -26,16 +26,17 @@ import 'common/util.js' as Util
 
 Page {
     id: freshEpisodes
+    allowedOrientations: Orientation.All
 
     onStatusChanged: pgst.handlePageStatusChange(status)
 
     Component.onCompleted: {
-        episodesListModel.setQuery(episodesListModel.queries.Fresh);
-        episodesListModel.reload();
+        episodeListModel.setQuery(episodeListModel.queries.Fresh);
+        episodeListModel.reload();
     }
 
     BusyIndicator {
-        visible: !episodesListModel.ready
+        visible: !episodeListModel.ready
         running: visible
         anchors.centerIn: parent
     }
@@ -45,7 +46,7 @@ Page {
         anchors.fill: parent
 
         PullDownMenu {
-            EpisodeListFilterItem { id: filterItem; model: episodesListModel }
+            EpisodeListFilterItem { id: filterItem; model: episodeListModel }
         }
 
         VerticalScrollDecorator { flickable: freshEpisodesList }
@@ -54,7 +55,7 @@ Page {
             title: 'Episodes: ' + filterItem.currentFilter
         }
 
-        model: GPodderEpisodeListModel { id: episodesListModel }
+        model: GPodderEpisodeListModel { id: episodeListModel }
         GPodderEpisodeListModelConnections {}
 
         section.property: 'section'
@@ -66,7 +67,7 @@ Page {
         delegate: EpisodeItem {}
 
         ViewPlaceholder {
-            enabled: freshEpisodesList.count == 0 && episodesListModel.ready
+            enabled: freshEpisodesList.count == 0 && episodeListModel.ready
             text: 'No episodes found'
         }
     }

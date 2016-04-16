@@ -27,6 +27,15 @@ ListItem {
     menu: Component {
         IconContextMenu {
             IconMenuItem {
+                text: 'Refresh'
+                icon.source: 'image://theme/icon-m-refresh'
+                onClicked: {
+                    podcastItem.hideMenu();
+                    py.call('main.check_for_episodes', [url]);
+                }
+            }
+
+            IconMenuItem {
                 text: 'Unsubscribe'
                 icon.source: 'image://theme/icon-m-delete'
                 onClicked: {
@@ -71,6 +80,15 @@ ListItem {
                             ctx.py.call('main.change_section', [ctx.id, new_section]);
                         }
                     });
+                }
+            }
+
+            IconMenuItem {
+                text: 'Podcast details'
+                icon.source: 'image://theme/icon-m-message'
+                onClicked: {
+                    podcastItem.hideMenu();
+                    pgst.loadPage('PodcastDetail.qml', {podcast_id: id, title: title});
                 }
             }
         }

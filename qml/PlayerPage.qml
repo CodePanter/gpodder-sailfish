@@ -21,10 +21,12 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 
+import 'common'
 import 'common/util.js' as Util
 
 Page {
     id: playerPage
+    allowedOrientations: Orientation.All
 
     SilicaFlickable {
         id: flickable
@@ -36,6 +38,23 @@ Page {
         PullDownMenu {
             PlayerChaptersItem {
                 model: player.episode_chapters
+            }
+
+            MenuItem {
+                text: player.sleepTimerRunning ? 'Stop sleep timer' : 'Sleep timer'
+                onClicked: {
+                    if (player.sleepTimerRunning) {
+                        player.stopSleepTimer();
+                    } else {
+                        pageStack.push('SleepTimerDialog.qml', { player: player });
+                    }
+                }
+            }
+
+            MenuItem {
+                text: 'Clear play queue'
+                enabled: playQueueRepeater.count > 0
+                onClicked: player.clearQueue()
             }
 
             MenuItem {
@@ -73,6 +92,22 @@ Page {
                 font.pixelSize: Theme.fontSizeSmall
             }
 
+            Label {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    margins: Theme.paddingLarge
+                }
+
+                visible: player.sleepTimerRunning
+
+                truncationMode: TruncationMode.Fade
+                horizontalAlignment: Text.AlignRight
+                text: 'Sleep timer: ' + Util.formatDuration(player.sleepTimerRemaining)
+                color: Theme.rgba(Theme.highlightColor, 0.7)
+                font.pixelSize: Theme.fontSizeExtraSmall
+            }
+
             Connections {
                 target: player
                 onPositionChanged: {
@@ -84,7 +119,7 @@ Page {
 
             Item {
                 width: parent.width
-                height: Theme.itemSizeSmall
+                height: Theme.paddingSmall
             }
 
             Label {
@@ -99,7 +134,7 @@ Page {
 
             Item {
                 width: parent.width
-                height: Theme.paddingMedium
+                height: Theme.paddingSmall
             }
 
             Slider {
@@ -116,38 +151,98 @@ Page {
                 }
             }
 
-            Item {
-                width: parent.width
-                height: Theme.itemSizeLarge
-            }
-
-            TimePicker {
-                hourMode: DateTime.TwentyFourHours
-                anchors.horizontalCenter: parent.horizontalCenter
-
-                property int oldHour: hour
-                property int oldMinute: minute
-
-                onHourChanged: {
-                    var diff = hour - oldHour;
-                    if (diff > 12) {
-                        diff -= 24;
-                    } else if (diff < -12) {
-                        diff += 24;
-                    }
-                    player.seekAndSync(player.position + 1000 * 60 * diff);
-                    oldHour = hour;
+            Row {
+                anchors {
+                    right: parent.right
+                    margins: Theme.paddingMedium
                 }
 
-                onMinuteChanged: {
-                    var diff = minute - oldMinute;
-                    if (diff > 30) {
-                        diff -= 60;
-                    } else if (diff < -30) {
-                        diff += 60;
+                height: Theme.itemSizeLarge
+                spacing: Theme.paddingMedium
+
+                IconMenuItem {
+                    text: '- 1 min'
+                    icon.source: 'image://theme/icon-m-previous'
+
+                    GPodderAutoFire {
+                        running: parent.down
+                        onFired: player.seekAndSync(player.position - 1000 * 60)
                     }
-                    player.seekAndSync(player.position + 1000 * 10 * diff);
-                    oldMinute = minute;
+                }
+
+                IconMenuItem {
+                    text: '- 10 sec'
+                    icon.source: 'image://theme/icon-m-previous'
+                    GPodderAutoFire {
+                        running: parent.down
+                        onFired: player.seekAndSync(player.position - 1000 * 10)
+                    }
+                }
+
+                IconMenuItem {
+                    text: '+ 10 sec'
+                    icon.source: 'image://theme/icon-m-next'
+                    GPodderAutoFire {
+                        running: parent.down
+                        onFired: player.seekAndSync(player.position + 1000 * 10)
+                    }
+                }
+
+                IconMenuItem {
+                    text: '+ 1 min'
+                    icon.source: 'image://theme/icon-m-next'
+                    GPodderAutoFire {
+                        running: parent.down
+                        onFired: player.seekAndSync(player.position + 1000 * 60)
+                    }
+                }
+            }
+
+            SectionHeader {
+                text: 'Play queue'
+                visible: playQueueRepeater.count > 0
+            }
+
+            Repeater {
+                id: playQueueRepeater
+                model: player.queue
+                property Item contextMenu
+
+                property var queueConnections: Connections {
+                    target: player
+
+                    onQueueUpdated: {
+                        playQueueRepeater.model = player.queue;
+                    }
+                }
+
+                ListItem {
+                    id: playQueueListItem
+
+                    width: parent.width
+
+                    menu: ContextMenu {
+                        MenuItem {
+                            text: 'Remove from queue'
+                            onClicked: player.removeQueueIndex(index);
+                        }
+                    }
+
+                    Label {
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            margins: Theme.paddingMedium
+                            verticalCenter: parent.verticalCenter
+                        }
+
+                        text: modelData.title
+                        truncationMode: TruncationMode.Fade
+                    }
+
+                    onClicked: {
+                        player.jumpToQueueIndex(index);
+                    }
                 }
             }
         }

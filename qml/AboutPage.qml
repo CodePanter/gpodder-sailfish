@@ -23,6 +23,7 @@ import Sailfish.Silica 1.0
 
 Page {
     id: aboutPage
+    allowedOrientations: Orientation.All
 
     onStatusChanged: pgst.handlePageStatusChange(status)
 
@@ -80,6 +81,7 @@ Page {
                         '',
                         'gPodder Core ' + py.coreversion,
                         'gPodder QML UI ' + py.uiversion,
+                        'Podcastparser ' + py.parserversion,
                         'PyOtherSide ' + py.pluginVersion(),
                         'Python ' + py.pythonVersion()
                     ].join('\n')

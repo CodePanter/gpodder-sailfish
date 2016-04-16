@@ -26,6 +26,7 @@ import 'common/util.js' as Util
 
 Page {
     id: episodesPage
+    allowedOrientations: Orientation.All
 
     property int podcast_id
     property string title
@@ -55,8 +56,17 @@ Page {
         VerticalScrollDecorator { flickable: episodeList }
 
         anchors.fill: parent
-        header: PageHeader {
-            title: episodesPage.title
+        header: BackgroundItem {
+            height: pageHeader.height
+            width: parent.width
+            PageHeader {
+                id: pageHeader
+                title: episodesPage.title
+            }
+
+            onClicked: {
+                pgst.loadPage('PodcastDetail.qml', {podcast_id: episodesPage.podcast_id, title: episodesPage.title});
+            }
         }
 
         model: GPodderEpisodeListModel { id: episodeListModel }
@@ -67,6 +77,21 @@ Page {
                 text: 'Mark episodes as old'
                 onClicked: {
                     py.call('main.mark_episodes_as_old', [episodesPage.podcast_id]);
+                }
+            }
+
+            MenuItem {
+                text: 'Enqueue episodes in player'
+                onClicked: {
+                    var startPlayback = Util.atMostOnce(function () {
+                        if (!player.isPlaying) {
+                            player.jumpToQueueIndex(0);
+                        }
+                    });
+
+                    episodeListModel.forEachEpisode(function (episode) {
+                        player.enqueueEpisode(episode.id, startPlayback);
+                    });
                 }
             }
 

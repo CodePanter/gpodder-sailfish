@@ -75,6 +75,16 @@ ListItem {
                         player.playbackEpisode(id);
                     }
                 }
+
+                onPressAndHold: {
+                    player.enqueueEpisode(id, function () {
+                        if (!player.isPlaying) {
+                            player.jumpToQueueIndex(0);
+                        } else {
+                            pageStack.navigateForward(PageStackAction.Animated);
+                        }
+                    });
+                }
             }
 
             IconMenuItem {
@@ -125,9 +135,7 @@ ListItem {
         right: parent.right
     }
 
-    Label {
-        id: titleItem
-
+    Column {
         anchors {
             left: parent.left
             right: downloadStatusIcon.left
@@ -135,24 +143,45 @@ ListItem {
             margins: Theme.paddingMedium
         }
 
-        truncationMode: TruncationMode.Fade
-        text: title
+        Label {
+            id: titleItem
 
-        // need to set opacity via color, as truncationMode overrides opacity
-        color: {
-            if (episodeItem.highlighted) {
-                return Theme.highlightColor
-            } else {
-                Theme.rgba(isNew ? Theme.highlightColor : Theme.primaryColor, opacity)
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+
+            truncationMode: TruncationMode.Fade
+            text: title
+
+            // need to set opacity via color, as truncationMode overrides opacity
+            color: {
+                if (episodeItem.highlighted) {
+                    return Theme.highlightColor
+                } else {
+                    Theme.rgba(isNew ? Theme.highlightColor : Theme.primaryColor, opacity)
+                }
+            }
+
+            opacity: {
+                switch (downloadState) {
+                    case Constants.state.normal: return 0.8;
+                    case Constants.state.downloaded: return 1;
+                    case Constants.state.deleted: return 0.3;
+                }
             }
         }
 
-        opacity: {
-            switch (downloadState) {
-                case Constants.state.normal: return 0.8;
-                case Constants.state.downloaded: return 1;
-                case Constants.state.deleted: return 0.3;
+        Label {
+            text: subtitle
+            anchors {
+                left: titleItem.left
+                right: titleItem.right
             }
+            truncationMode: TruncationMode.Fade
+            opacity: titleItem.opacity
+            visible: subtitle !== ''
+            font.pixelSize: Theme.fontSizeExtraSmall
         }
     }
 
